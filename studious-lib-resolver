@@ -19,11 +19,15 @@
 
 
 
-usage="Usage: $(basename $0): FILENAME"
+usage="Usage: $(basename $0) [-n] FILENAME"
 
-while getopts '' OPTION
+nono=0
+
+while getopts 'n' OPTION
 do
 	case $OPTION in
+	n)	nono=1
+		;;
 	?)	echo "$usage" >&2
 		exit 2
 		;;
@@ -69,7 +73,7 @@ then
 	exit 0
 fi
 
-echo "$COUNT missing libs"
+[ $nono -eq 0 ] && echo "$COUNT missing libs"
 
 for i in $MISSING_SHARED_LIBS
 do
@@ -78,4 +82,7 @@ do
 	MISSING_PKGS="$MISSING_PKGS$PACKAGE$SUFFIX "
 done
 
-sudo apt install $MISSING_PKGS
+if [ $nono -eq 0 ]
+then
+	sudo apt install $MISSING_PKGS
+fi
