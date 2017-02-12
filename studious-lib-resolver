@@ -62,6 +62,4 @@ do
 	MISSING_PKGS="$MISSING_PKGS$PACKAGE$SUFFIX "
 done
 
-echo $MISSING_PKGS
-
 sudo apt install $MISSING_PKGS
