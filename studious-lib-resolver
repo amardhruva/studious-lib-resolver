@@ -19,21 +19,41 @@
 
 
 
-USEERROR="$0:wrong number of parameters"
+usage="Usage: $(basename $0) [-n] FILENAME"
 
-USAGE="
-USAGE
-$0 executable
-"
+nono=0
+
+while getopts 'n' OPTION
+do
+	case $OPTION in
+	n)	nono=1
+		;;
+	?)	echo "$usage" >&2
+		exit 2
+		;;
+	esac
+done
+
+shift $(($OPTIND-1))
 
 if [ $# -ne 1 ]
 then
-	echo "$USEERROR"
-	echo "$USAGE"
-	exit 1
+	echo "One argument expected"
+	echo $usage
+	exit 2
+else
+	FILE=$1
 fi
 
-EXEC_ARCH=`objdump -f $1| awk '/architecture/{gsub(/,$/,"",$2);print $2}'`
+ARCH=`readelf -h "$1" | awk '/Class/ {print $2}'`
+
+if [ $ARCH = "ELF32" ]
+then
+	EXEC_ARCH="i386"
+elif [ $ARCH = "ELF64" ]
+then
+	EXEC_ARCH="x86_64"
+fi
 
 if [ `uname -m` = $EXEC_ARCH ]
 then
@@ -53,7 +73,7 @@ then
 	exit 0
 fi
 
-echo "$COUNT missing libs"
+[ $nono -eq 0 ] && echo "$COUNT missing libs"
 
 for i in $MISSING_SHARED_LIBS
 do
@@ -62,4 +82,7 @@ do
 	MISSING_PKGS="$MISSING_PKGS$PACKAGE$SUFFIX "
 done
 
-sudo apt install $MISSING_PKGS
+if [ $nono -eq 0 ]
+then
+	sudo apt install $MISSING_PKGS
+fi
